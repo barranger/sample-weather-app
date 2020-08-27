@@ -6,26 +6,26 @@ const url = `https://api.openweathermap.org/data/2.5/onecall?lat=43.379100&lon=-
 
 const App = () => {
 
-  const [forcast, setForcast] = useState(null);
+  const [forecast, setForecast] = useState(null);
 
   useEffect(() => {
-    const loadForcast = async () => {
-      if (!forcast) {
+    const loadForecast = async () => {
+      if (!forecast) {
         var response = await fetch(url);
         var data = await response.json();
-        setForcast(data);
+        setForecast(data);
       }
     }
-    loadForcast();
+    loadForecast();
   })
 
-  if (!forcast) {
+  if (!forecast) {
     return <SafeAreaView style={styles.loading}>
       <ActivityIndicator size="large" />
       </SafeAreaView>;
   }
 
-  const current = forcast.current.weather[0];
+  const current = forecast.current.weather[0];
   // TODO: In an upcoming blog post, I'll be extracting components out of this class as you would in a real application.
   return (
     <SafeAreaView style={styles.container}>
@@ -38,14 +38,14 @@ const App = () => {
               uri: `http://openweathermap.org/img/wn/${current.icon}@4x.png`,
             }}
           />
-          <Text style={styles.currentTemp}>{Math.round(forcast.current.temp)}°C</Text>
+          <Text style={styles.currentTemp}>{Math.round(forecast.current.temp)}°C</Text>
         </View>
         
         <Text style={styles.currentDescription}>{current.description}</Text>
         <View>
-          <Text style={styles.subtitle}>Hourly Forcast</Text>
+          <Text style={styles.subtitle}>Hourly Forecast</Text>
           <FlatList horizontal
-            data={forcast.hourly.slice(0, 24)}
+            data={forecast.hourly.slice(0, 24)}
             keyExtractor={(item, index) => index.toString()}
             renderItem={(hour) => {
               const weather = hour.item.weather[0];
@@ -66,7 +66,7 @@ const App = () => {
         </View>
 
         <Text style={styles.subtitle}>Next 5 Days</Text>
-        {forcast.daily.slice(0,5).map(d => { //Only want the next 5 days
+        {forecast.daily.slice(0,5).map(d => { //Only want the next 5 days
           const weather = d.weather[0];
           var dt = new Date(d.dt * 1000);
           return <View style={styles.day} key={d.dt}>
