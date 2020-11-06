@@ -1,22 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, ActivityIndicator, SafeAreaView, ScrollView, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Image, ActivityIndicator, SafeAreaView, ScrollView, FlatList, Alert, RefreshControl } from 'react-native';
+import * as Location from 'expo-location';
 
-const openWeatherKey = '';
-const url = `https://api.openweathermap.org/data/2.5/onecall?lat=43.379100&lon=-79.757400&units=metric&exclude=minutely&appid=${openWeatherKey}`;
+// import { openWeatherKey } from './Secrets';
+const openWeatherKey = ``;
+let url = `https://api.openweathermap.org/data/2.5/onecall?&units=metric&exclude=minutely&appid=${openWeatherKey}`;
+
 
 const App = () => {
 
   const [forecast, setForecast] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const loadForecast = async () => {
-      if (!forecast) {
-        var response = await fetch(url);
-        var data = await response.json();
-        setForecast(data);
-      }
+  const loadForecast = async () => {
+    setRefreshing(true);
+
+    const { status } = await Location.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission to access location was denied');
     }
-    loadForecast();
+
+    let location = await Location.getCurrentPositionAsync({enableHighAccuracy: true});
+    url += `&lat=${location.coords.latitude}&lon=${location.coords.longitude}`
+
+    var response = await fetch(url);
+    var data = await response.json();
+
+    if(!response.ok) {
+      Alert.alert(`Error retrieving weather data: ${data.message}`); 
+    } else {
+      setForecast(data);
+    }
+
+    setRefreshing(false);
+  }
+
+  useEffect(() => { 
+    if (!forecast) {
+      loadForecast(); 
+    }
   })
 
   if (!forecast) {
@@ -29,7 +51,13 @@ const App = () => {
   // TODO: In an upcoming blog post, I'll be extracting components out of this class as you would in a real application.
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView 
+        refreshControl={
+          <RefreshControl 
+            onRefresh={() => {  loadForecast() }} 
+            refreshing={refreshing}
+          />}
+      >
         <Text style={styles.title}>Current Weather</Text>
         <View style={styles.current}>
           <Image
