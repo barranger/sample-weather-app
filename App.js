@@ -21,10 +21,9 @@ const App = () => {
     }
 
     let location = await Location.getCurrentPositionAsync({enableHighAccuracy: true});
-    url += `&lat=${location.coords.latitude}&lon=${location.coords.longitude}`
 
-    var response = await fetch(url);
-    var data = await response.json();
+    const response = await fetch( `${url}&lat=${location.coords.latitude}&lon=${location.coords.longitude}`);
+    const data = await response.json();
 
     if(!response.ok) {
       Alert.alert(`Error retrieving weather data: ${data.message}`); 
